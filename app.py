@@ -12,9 +12,31 @@ import redis
 
 # Configurações do Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-# Configure SSL only if using a remote Redis instance
-redis_ssl = REDIS_URL.startswith('rediss://') or 'redis.com' in REDIS_URL
-redis_client = redis.from_url(REDIS_URL, ssl=redis_ssl)
+
+# Configuração para Upstash Redis
+if 'upstash.io' in REDIS_URL:
+    # Parse da URL do Redis para extrair componentes
+    from urllib.parse import urlparse
+    parsed_url = urlparse(REDIS_URL)
+    
+    # Extrair host, port, password
+    redis_host = parsed_url.hostname
+    redis_port = parsed_url.port or 6379
+    redis_password = parsed_url.password
+    
+    # Conectar usando parâmetros explícitos para Upstash
+    redis_client = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        password=redis_password,
+        ssl=True,
+        ssl_cert_reqs=None
+    )
+else:
+    # Configuração padrão para desenvolvimento local ou outros provedores
+    redis_ssl = REDIS_URL.startswith('rediss://') or 'redis.com' in REDIS_URL
+    redis_client = redis.from_url(REDIS_URL.replace('redis://', 'rediss://') if redis_ssl else REDIS_URL, 
+                                 ssl_cert_reqs=None if redis_ssl else None)
 
 # Modify secret key configuration
 app = Flask(__name__)
