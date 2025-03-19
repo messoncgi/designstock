@@ -12,31 +12,14 @@ import redis
 
 # Configurações do Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-
-# Configuração para Upstash Redis
-if 'upstash.io' in REDIS_URL:
-    # Parse da URL do Redis para extrair componentes
-    from urllib.parse import urlparse
-    parsed_url = urlparse(REDIS_URL)
-    
-    # Extrair host, port, password
-    redis_host = parsed_url.hostname
-    redis_port = parsed_url.port or 6379
-    redis_password = parsed_url.password
-    
-    # Conectar usando parâmetros explícitos para Upstash
-    redis_client = redis.Redis(
-        host=redis_host,
-        port=redis_port,
-        password=redis_password,
-        ssl=True,
-        ssl_cert_reqs=None
-    )
+# For newer redis-py versions, ssl is handled automatically by the URL scheme (rediss://)
+# For older versions, we need to use connection_pool parameter
+if REDIS_URL.startswith('rediss://'):
+    # For secure connections the ssl is handled by the URL scheme
+    redis_client = redis.from_url(REDIS_URL)
 else:
-    # Configuração padrão para desenvolvimento local ou outros provedores
-    redis_ssl = REDIS_URL.startswith('rediss://') or 'redis.com' in REDIS_URL
-    redis_client = redis.from_url(REDIS_URL.replace('redis://', 'rediss://') if redis_ssl else REDIS_URL, 
-                                 ssl_cert_reqs=None if redis_ssl else None)
+    # For regular non-SSL connections
+    redis_client = redis.from_url(REDIS_URL)
 
 # Modify secret key configuration
 app = Flask(__name__)
