@@ -8,7 +8,11 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from datetime import datetime
 import base64
-import redis  # Adicione esta linha
+import redis
+
+# Configurações do Redis
+REDIS_URL = "redis://default:AV8hAAIjcDE2OWJjYjRiMWFjNDQ0MDQ2YTZmMGQwNDY0MzBhZjBhNHAxMA@decent-termite-24353.upstash.io:6379"
+redis_client = redis.from_url(REDIS_URL, ssl=True)
 
 # Configuração para desenvolvimento (REMOVER EM PRODUÇÃO)
 # Remove lines 7-8 (dev settings)
