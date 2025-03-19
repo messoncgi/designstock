@@ -1,5 +1,5 @@
 import os
-import json  # Adicione esta linha
+import json
 from flask import Flask, render_template, request
 import requests
 import re
@@ -7,7 +7,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from datetime import datetime
-import base64  # Adicione esta linha no topo do arquivo se faltar
+import base64
+import redis  # Adicione esta linha
 
 # Configuração para desenvolvimento (REMOVER EM PRODUÇÃO)
 # Remove lines 7-8 (dev settings)
@@ -53,6 +54,14 @@ def home():
 def upload():
     filename = None
     try:
+        # Verificar limite de downloads por IP
+        client_ip = request.remote_addr
+        downloads_key = f"downloads:{client_ip}"
+        downloads_hoje = redis_client.get(downloads_key)
+        
+        if downloads_hoje and int(downloads_hoje) >= 2:
+            return "<div class='alert alert-danger'>❌ Você atingiu o limite de downloads hoje. Tente novamente amanhã!</div>"
+        
         service = get_drive_service()
         if not service:
             return "<div class='alert alert-danger'>❌ Erro ao conectar com o Google Drive.</div>"
