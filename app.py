@@ -12,20 +12,17 @@ import redis
 
 # Configurações do Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-redis_client = redis.from_url(REDIS_URL, ssl=True)
+# Configure SSL only if using a remote Redis instance
+redis_ssl = REDIS_URL.startswith('rediss://') or 'redis.com' in REDIS_URL
+redis_client = redis.from_url(REDIS_URL, ssl=redis_ssl)
 
-# Configuração para desenvolvimento (REMOVER EM PRODUÇÃO)
-# Remove lines 7-8 (dev settings)
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
-# Modify secret key configuration (line 10)
+# Modify secret key configuration
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret')  # Production-ready
 
 # Configurações
 FREEPIK_API_KEY = os.getenv("FREEPIK_API_KEY", "FPSX98a4f1a67e3e4ead80dfc23df6ab8b33")
 SCOPES = ['https://www.googleapis.com/auth/drive']  # Escopo completo para acesso ao Drive
-# SERVICE_ACCOUNT_FILE = 'service-account.json'  # REMOVE THIS LINE
 FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'
 
 def get_drive_service():
@@ -52,7 +49,24 @@ def get_drive_service():
 def home():
     return render_template('index.html')
 
-
+@app.route('/status')
+def user_status():
+    try:
+        client_ip = request.remote_addr
+        downloads_key = f"downloads:{client_ip}"
+        downloads_hoje = redis_client.get(downloads_key)
+        
+        if downloads_hoje:
+            downloads = int(downloads_hoje)
+            downloads_restantes = max(0, 2 - downloads)
+            if downloads_restantes > 0:
+                return f'<div class="alert alert-info">Você tem {downloads_restantes} downloads restantes hoje.</div>'
+            else:
+                return '<div class="alert alert-warning">Você atingiu o limite de downloads hoje. Tente novamente amanhã!</div>'
+        else:
+            return '<div class="alert alert-info">Você tem 2 downloads disponíveis hoje.</div>'
+    except Exception as e:
+        return f'<div class="alert alert-danger">Erro ao verificar status: {str(e)}</div>'
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -205,6 +219,12 @@ def upload():
             # Fecha explicitamente o descritor de arquivo
             if hasattr(media, '_fd'):
                 media._fd.close()
+        
+        # Incrementar contador de downloads no Redis
+        if not downloads_hoje:
+            redis_client.set(downloads_key, 1, ex=86400)  # expira em 24h
+        else:
+            redis_client.incr(downloads_key)
 
         # Modifica o retorno para incluir HTML formatado
         success_html = f"""
@@ -249,4 +269,4 @@ def upload():
 
 # Modify the last lines for production
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
