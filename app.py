@@ -25,9 +25,15 @@ FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'
 
 def get_drive_service():
     try:
-        json_str = base64.b64decode(os.environ['SERVICE_ACCOUNT_JSON']).decode('utf-8')
+        # Corrigir padding do base64
+        encoded_json = os.environ.get('SERVICE_ACCOUNT_JSON', '')
+        # Adicionar padding faltante se necessário
+        missing_padding = len(encoded_json) % 4
+        if missing_padding:
+            encoded_json += '=' * (4 - missing_padding)
+            
+        json_str = base64.b64decode(encoded_json).decode('utf-8')
         service_account_info = json.loads(json_str)
-        ...
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=SCOPES
