@@ -11,7 +11,7 @@ import base64
 import redis
 
 # Configurações do Redis
-REDIS_URL = "redis://default:AV8hAAIjcDE2OWJjYjRiMWFjNDQ0MDQ2YTZmMGQwNDY0MzBhZjBhNHAxMA@decent-termite-24353.upstash.io:6379"
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 redis_client = redis.from_url(REDIS_URL, ssl=True)
 
 # Configuração para desenvolvimento (REMOVER EM PRODUÇÃO)
