@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resultado do Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .result-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .download-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .download-link:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-card">
+        <div class="success-icon">✅</div>
+        <h2>Upload Concluído com Sucesso!</h2>
+        <div class="mb-2">
+            <strong>ID do arquivo:</strong> {{ file_id }}
+        </div>
+        <div class="mb-2">
+            <strong>Tipo:</strong> {{ file_type.capitalize() }} ({{ file_extension.upper() }})
+        </div>
+        <div class="mb-3">
+            <strong>Link para download:</strong><br>
+            <a href="{{ drive_link }}" target="_blank" class="download-link">
+                Acessar no Google Drive
+            </a>
+        </p>
+    </div>
+    <a href="{{ url_for('home') }}" class="back-button">Voltar ao Início</a>
+</body>
+</html>

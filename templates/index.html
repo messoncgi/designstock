@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DesignStock</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background: #f1f3f5;
+        }
+        .result-card {
+            display: none;
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">DesignStock</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Upload de Imagem</h5>
+                        <form id="uploadForm" action="/upload" method="post">
+                            <div class="upload-area">
+                                <div class="mb-3">
+                                    <label for="freepik_link" class="form-label">Link do Freepik</label>
+                                    <input type="text" class="form-control" id="freepik_link" name="freepik_link" 
+                                           placeholder="https://www.freepik.com/photo/12345678.htm" required>
+                                    <div class="form-text">Cole o link da imagem do Freepik aqui</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="normal-state">Fazer Upload</span>
+                                    <span class="loading">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        Processando...
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="uploadHistory" class="mt-4">
+                            <h6 class="card-subtitle mb-3">Histórico de Downloads</h6>
+                            <div id="historyItems"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const historyDiv = document.getElementById('historyItems');
+            const normalState = form.querySelector('.normal-state');
+            const loadingState = form.querySelector('.loading');
+            
+            normalState.style.display = 'none';
+            loadingState.style.display = 'inline';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Create new history item
+                const newHistoryItem = document.createElement('div');
+                newHistoryItem.className = 'card mb-3';
+                newHistoryItem.innerHTML = data;
+                
+                // Add new item at the top of history
+                historyDiv.insertBefore(newHistoryItem, historyDiv.firstChild);
+            })
+            .catch(error => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = `Erro: ${error}`;
+                historyDiv.insertBefore(errorDiv, historyDiv.firstChild);
+            })
+            .finally(() => {
+                normalState.style.display = 'inline';
+                loadingState.style.display = 'none';
+                form.reset();
+            });
+        });
+    </script>
+</body>
+</html>
