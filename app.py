@@ -19,22 +19,13 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret')  # Production-ready
 # Configurações
 FREEPIK_API_KEY = os.getenv("FREEPIK_API_KEY", "FPSX98a4f1a67e3e4ead80dfc23df6ab8b33")
 SCOPES = ['https://www.googleapis.com/auth/drive']  # Escopo completo para acesso ao Drive
-SERVICE_ACCOUNT_FILE = 'service-account.json'
-# Na linha 19 verifique o FOLDER_ID
-FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'  # Confirme se este ID está correto
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-
+# SERVICE_ACCOUNT_FILE = 'service-account.json'  # REMOVE THIS LINE
+FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'
 
 def get_drive_service():
-    # Usa a conta de serviço para autenticação
     try:
         # Modificação necessária para produção
-        import json
-        service_account_info = json.loads(os.environ['SERVICE_ACCOUNT_JSON'])
+        service_account_info = json.loads(os.environ.get('SERVICE_ACCOUNT_JSON', '{}'))  # Add fallback
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=SCOPES
@@ -43,6 +34,12 @@ def get_drive_service():
     except Exception as e:
         print(f"Erro de autenticação Google Drive: {str(e)}")
         return None
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+
 
 @app.route('/upload', methods=['POST'])
 def upload():
