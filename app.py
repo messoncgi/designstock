@@ -7,6 +7,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from datetime import datetime
+import base64  # Adicione esta linha no topo do arquivo se faltar
 
 # Configuração para desenvolvimento (REMOVER EM PRODUÇÃO)
 # Remove lines 7-8 (dev settings)
@@ -24,8 +25,9 @@ FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'
 
 def get_drive_service():
     try:
-        # Modificação necessária para produção
-        service_account_info = json.loads(os.environ.get('SERVICE_ACCOUNT_JSON', '{}'))  # Add fallback
+        json_str = base64.b64decode(os.environ['SERVICE_ACCOUNT_JSON']).decode('utf-8')
+        service_account_info = json.loads(json_str)
+        ...
         credentials = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=SCOPES
