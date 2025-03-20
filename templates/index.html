@@ -26,12 +26,31 @@
         .loading {
             display: none;
         }
+        .tutorial-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #0d6efd;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .tutorial-step {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="#">DesignStock</a>
+            <span class="navbar-text text-light">BETA V1</span>
         </div>
     </nav>
 
@@ -40,7 +59,7 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Upload de Imagem</h5>
+                        <h5 class="card-title">Baixe Arquivos Premium Grátis</h5>
                         <div id="userStatus" class="mb-3"></div>
                         <form id="uploadForm" action="/upload" method="post">
                             <div class="upload-area">
@@ -48,10 +67,10 @@
                                     <label for="freepik_link" class="form-label">Link do Freepik</label>
                                     <input type="text" class="form-control" id="freepik_link" name="freepik_link" 
                                            placeholder="https://www.freepik.com/photo/12345678.htm" required>
-                                    <div class="form-text">Cole o link da imagem do Freepik aqui</div>
+                                    <div class="form-text">Cole o link do arquivo aqui!</div>
                                 </div>
                                 <button type="submit" class="btn btn-primary">
-                                    <span class="normal-state">Fazer Upload</span>
+                                    <span class="normal-state"><i class="bi bi-download"></i> Baixar Grátis</span>
                                     <span class="loading">
                                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                         Processando...
@@ -64,7 +83,21 @@
                             <h6 class="card-subtitle mb-3">Histórico de Downloads</h6>
                             <div id="historyItems"></div>
                         </div>
+                        
+                        <div class="tutorial-section">
+                            <h6><i class="bi bi-info-circle"></i> Como baixar arquivos do Freepik</h6>
+                            <div class="tutorial-step">1. Acesse o site do Freepik e encontre o arquivo desejado</div>
+                            <div class="tutorial-step">2. Copie o link completo do arquivo (ex: https://www.freepik.com/photo/12345678.htm)</div>
+                            <div class="tutorial-step">3. Cole o link no campo acima</div>
+                            <div class="tutorial-step">4. Clique em "Baixar Grátis"</div>
+                            <div class="tutorial-step">5. Aguarde o processamento e faça o download pelo link do Google Drive</div>
+                        </div>
                     </div>
+                </div>
+                
+                <div class="footer d-flex justify-content-between">
+                    <div>Feito com <i class="bi bi-heart-fill text-danger"></i> e com café</div>
+                    <div>BETA V1</div>
                 </div>
             </div>
         </div>
@@ -72,12 +105,34 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Mensagens engraçadas para quando o limite é atingido
+        const mensagensFun = [
+            "Calma aê, Paizão! Se não você vai falir a startup!",
+            "Opa, opa! Já baixou demais hoje, economize seus clicks!",
+            "Limite atingido! Volta amanhã que o servidor tá de molho agora.",
+            "Eita! Parece que alguém tá empolgado demais com os downloads!"
+        ];
+        
+        // Função para obter uma mensagem aleatória da lista
+        function getMensagemFun() {
+            const index = Math.floor(Math.random() * mensagensFun.length);
+            return mensagensFun[index];
+        }
+        
         // Carregar status do usuário (downloads restantes)
         window.addEventListener('DOMContentLoaded', function() {
             fetch('/status')
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById('userStatus').innerHTML = data;
+                    const userStatus = document.getElementById('userStatus');
+                    
+                    // Verificar se atingiu o limite e usar mensagem divertida
+                    if (data.includes("Você atingiu o limite de downloads hoje")) {
+                        const mensagemFun = getMensagemFun();
+                        userStatus.innerHTML = `<div class="alert alert-warning">${mensagemFun}</div>`;
+                    } else {
+                        userStatus.innerHTML = data;
+                    }
                 })
                 .catch(error => {
                     console.error('Erro ao carregar status:', error);
@@ -113,7 +168,15 @@
                 fetch('/status')
                     .then(response => response.text())
                     .then(statusData => {
-                        document.getElementById('userStatus').innerHTML = statusData;
+                        const userStatus = document.getElementById('userStatus');
+                        
+                        // Verificar se atingiu o limite e usar mensagem divertida
+                        if (statusData.includes("Você atingiu o limite de downloads hoje")) {
+                            const mensagemFun = getMensagemFun();
+                            userStatus.innerHTML = `<div class="alert alert-warning">${mensagemFun}</div>`;
+                        } else {
+                            userStatus.innerHTML = statusData;
+                        }
                     });
             })
             .catch(error => {
