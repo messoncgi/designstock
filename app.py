@@ -12,14 +12,31 @@ import redis
 
 # Configurações do Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-# For newer redis-py versions, ssl is handled automatically by the URL scheme (rediss://)
-# For older versions, we need to use connection_pool parameter
-if REDIS_URL.startswith('rediss://'):
-    # For secure connections the ssl is handled by the URL scheme
-    redis_client = redis.from_url(REDIS_URL)
+
+# Configuração para Upstash Redis
+if 'upstash.io' in REDIS_URL:
+    # Parse da URL do Redis para extrair componentes
+    from urllib.parse import urlparse
+    parsed_url = urlparse(REDIS_URL)
+    
+    # Extrair host, port, password
+    redis_host = parsed_url.hostname
+    redis_port = parsed_url.port or 6379
+    redis_password = parsed_url.password
+    
+    # Conectar usando parâmetros explícitos para Upstash
+    redis_client = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        password=redis_password,
+        ssl=True,
+        ssl_cert_reqs=None
+    )
 else:
-    # For regular non-SSL connections
-    redis_client = redis.from_url(REDIS_URL)
+    # Configuração padrão para desenvolvimento local ou outros provedores
+    redis_ssl = REDIS_URL.startswith('rediss://') or 'redis.com' in REDIS_URL
+    redis_client = redis.from_url(REDIS_URL.replace('redis://', 'rediss://') if redis_ssl else REDIS_URL, 
+                                 ssl_cert_reqs=None if redis_ssl else None)
 
 # Modify secret key configuration
 app = Flask(__name__)
@@ -29,6 +46,15 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret')  # Production-ready
 FREEPIK_API_KEY = os.getenv("FREEPIK_API_KEY", "FPSX98a4f1a67e3e4ead80dfc23df6ab8b33")
 SCOPES = ['https://www.googleapis.com/auth/drive']  # Escopo completo para acesso ao Drive
 FOLDER_ID = '18JkCOexQ7NdzVgmK0WvKyf53AHWKQyyV'
+
+# Função para obter o IP real do cliente
+def get_client_ip():
+    # Tentativa de obter o IP real do cliente mesmo atrás de proxies
+    if request.headers.getlist("X-Forwarded-For"):
+        client_ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0]
+    else:
+        client_ip = request.remote_addr or '127.0.0.1'
+    return client_ip
 
 def get_drive_service():
     try:
@@ -57,9 +83,11 @@ def home():
 @app.route('/status')
 def user_status():
     try:
-        client_ip = request.remote_addr
+        client_ip = get_client_ip()  # Usando a função para obter o IP real
         downloads_key = f"downloads:{client_ip}"
         downloads_hoje = redis_client.get(downloads_key)
+        
+        print(f"DEBUG - IP: {client_ip}, Downloads hoje: {downloads_hoje}")  # Log para debug
         
         if downloads_hoje:
             downloads = int(downloads_hoje)
@@ -71,6 +99,7 @@ def user_status():
         else:
             return '<div class="alert alert-info">Você tem 2 downloads disponíveis hoje.</div>'
     except Exception as e:
+        print(f"DEBUG - Erro no status: {str(e)}")  # Log para debug
         return f'<div class="alert alert-danger">Erro ao verificar status: {str(e)}</div>'
 
 @app.route('/upload', methods=['POST'])
@@ -78,9 +107,11 @@ def upload():
     filename = None
     try:
         # Verificar limite de downloads por IP
-        client_ip = request.remote_addr
+        client_ip = get_client_ip()  # Usando a função para obter o IP real
         downloads_key = f"downloads:{client_ip}"
         downloads_hoje = redis_client.get(downloads_key)
+        
+        print(f"DEBUG - Upload - IP: {client_ip}, Downloads hoje: {downloads_hoje}")  # Log para debug
         
         if downloads_hoje and int(downloads_hoje) >= 2:
             return "<div class='alert alert-danger'>❌ Você atingiu o limite de downloads hoje. Tente novamente amanhã!</div>"
@@ -228,8 +259,10 @@ def upload():
         # Incrementar contador de downloads no Redis
         if not downloads_hoje:
             redis_client.set(downloads_key, 1, ex=86400)  # expira em 24h
+            print(f"DEBUG - Primeiro download do dia para o IP {client_ip}")
         else:
             redis_client.incr(downloads_key)
+            print(f"DEBUG - Download incrementado para o IP {client_ip}")
 
         # Modifica o retorno para incluir HTML formatado
         success_html = f"""
@@ -254,6 +287,7 @@ def upload():
         return success_html
 
     except Exception as e:
+        print(f"DEBUG - Erro no upload: {str(e)}")  # Log para debug
         return f'<div class="alert alert-danger">⚠️ Erro: {str(e)}</div>'
 
     finally:
