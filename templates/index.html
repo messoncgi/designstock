@@ -44,13 +44,31 @@
             margin-bottom: 10px;
             padding-left: 10px;
         }
+        .fake-log {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #666;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .processing-warning {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="#">DesignStock</a>
-            <span class="navbar-text text-light">BETA V1</span>
+            <span class="navbar-text text-light">BETA V2</span>
         </div>
     </nav>
 
@@ -61,23 +79,74 @@
                     <div class="card-body">
                         <h5 class="card-title">Baixe Arquivos Premium Grátis</h5>
                         <div id="userStatus" class="mb-3"></div>
-                        <form id="uploadForm" action="/upload" method="post">
-                            <div class="upload-area">
-                                <div class="mb-3">
-                                    <label for="freepik_link" class="form-label">Link do Freepik</label>
-                                    <input type="text" class="form-control" id="freepik_link" name="freepik_link" 
-                                           placeholder="https://www.freepik.com/photo/12345678.htm" required>
-                                    <div class="form-text">Cole o link do arquivo aqui!</div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <span class="normal-state"><i class="bi bi-download"></i> Baixar Grátis</span>
-                                    <span class="loading">
-                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                        Processando...
-                                    </span>
-                                </button>
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#freepikTab" type="button">Freepik</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#designiTab" type="button">Designi</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#shutterstockTab" type="button">Shutterstock</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="freepikTab">
+                                <form id="uploadForm" action="/upload" method="post">
+                                    <div class="upload-area">
+                                        <div class="mb-3">
+                                            <label for="freepik_link" class="form-label">Link do Freepik</label>
+                                            <input type="text" class="form-control" id="freepik_link" name="freepik_link" 
+                                                   placeholder="https://www.freepik.com/photo/12345678.htm" required>
+                                            <div class="form-text">Cole o link do arquivo aqui!</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" id="freepikSubmitBtn">
+                                            <span class="normal-state"><i class="bi bi-download"></i> Baixar Grátis</span>
+                                            <span class="loading">
+                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                <span class="processing-text">Processando...</span>
+                                            </span>
+                                        </button>
+                                        <div class="processing-warning" id="freepikWarning">
+                                            <i class="bi bi-exclamation-triangle"></i> NÃO FECHE OU ATUALIZE A PÁGINA DURANTE O PROCESSAMENTO!
+                                        </div>
+                                        <div class="fake-log mt-2" id="freepikLog" style="display: none;"></div>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                            
+                            <div class="tab-pane fade" id="designiTab">
+                                <form id="designiForm" onsubmit="downloadDesigni(event)">
+                                    <div class="upload-area">
+                                        <div class="mb-3">
+                                            <label for="designi_link" class="form-label">Link do Designi</label>
+                                            <input type="text" class="form-control" id="designi_link" 
+                                                   placeholder="Cole aqui a URL do arquivo do Designi" required>
+                                            <div class="form-text">Cole o link do arquivo aqui!</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" id="designiSubmitBtn">
+                                            <span class="normal-state"><i class="bi bi-download"></i> Baixar do Designi</span>
+                                            <span class="loading">
+                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                <span class="processing-text">Processando...</span>
+                                            </span>
+                                        </button>
+                                        <div class="processing-warning" id="designiWarning">
+                                            <i class="bi bi-exclamation-triangle"></i> NÃO FECHE OU ATUALIZE A PÁGINA DURANTE O PROCESSAMENTO!
+                                        </div>
+                                        <div class="fake-log mt-2" id="designiLog" style="display: none;"></div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="shutterstockTab">
+                                <div class="text-center mt-5">
+                                    <h4>Em breve...</h4>
+                                    <p>Estamos trabalhando para trazer downloads do Shutterstock para você!</p>
+                                </div>
+                            </div>
+                        </div>
 
                         <div id="uploadHistory" class="mt-4">
                             <h6 class="card-subtitle mb-3">Histórico de Downloads</h6>
@@ -85,19 +154,25 @@
                         </div>
                         
                         <div class="tutorial-section">
-                            <h6><i class="bi bi-info-circle"></i> Como baixar arquivos do Freepik</h6>
+                            <h6><i class="bi bi-info-circle"></i> Como baixar arquivos</h6>
+                            <div class="tutorial-step"><strong>Freepik:</strong></div>
                             <div class="tutorial-step">1. Acesse o site do Freepik e encontre o arquivo desejado</div>
                             <div class="tutorial-step">2. Copie o link completo do arquivo (ex: https://www.freepik.com/photo/12345678.htm)</div>
-                            <div class="tutorial-step">3. Cole o link no campo acima</div>
-                            <div class="tutorial-step">4. Clique em "Baixar Grátis"</div>
-                            <div class="tutorial-step">5. Aguarde o processamento e faça o download pelo link do Google Drive</div>
+                            <div class="tutorial-step">3. Cole o link no campo acima e clique em "Baixar Grátis"</div>
+                            <div class="tutorial-step">4. Aguarde o processamento e faça o download pelo link do Google Drive</div>
+                            <div class="tutorial-step"><strong>Designi:</strong></div>
+                            <div class="tutorial-step">1. Acesse o site do Designi e encontre o arquivo desejado</div>
+                            <div class="tutorial-step">2. Copie o link completo do arquivo</div>
+                            <div class="tutorial-step">3. Cole o link no campo da aba Designi e clique em "Baixar do Designi"</div>
+                            <div class="tutorial-step">4. Aguarde o processamento e faça o download pelo link do Google Drive</div>
+                            <div class="tutorial-step text-danger"><strong>IMPORTANTE: Não feche ou atualize a página durante o processamento!</strong></div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="footer d-flex justify-content-between">
                     <div>Feito com <i class="bi bi-heart-fill text-danger"></i> e com café</div>
-                    <div>BETA V1</div>
+                    <div>BETA V2</div>
                 </div>
             </div>
         </div>
@@ -113,10 +188,45 @@
             "Eita! Parece que alguém tá empolgado demais com os downloads!"
         ];
         
-        // Função para obter uma mensagem aleatória da lista
+        // Mensagens para o log fake
+        const fakeLogMessages = [
+            "Iniciando processo de download...",
+            "Conectando ao servidor principal...",
+            "Servidor respondeu! Ufa, achei que tinha queimado de novo.",
+            "Bypassando paywall... shhhh, não conta pra ninguém!",
+            "Baixando arquivo... mais devagar que internet discada!",
+            "Convertendo arquivo... nosso PC da Positivo tá sofrendo!",
+            "Enviando para o Google Drive...",
+            "Sucesso! Arquivo pronto para download!"
+        ];
+        
+        // Função para obter uma mensagem aleatória da lista de limite atingido
         function getMensagemFun() {
             const index = Math.floor(Math.random() * mensagensFun.length);
             return mensagensFun[index];
+        }
+        
+        // Função para simular log fake
+        function simulateFakeLog(logElement) {
+            logElement.style.display = 'block';
+            logElement.innerHTML = '';
+            
+            let i = 0;
+            const maxMessages = Math.floor(Math.random() * 5) + 5; // Entre 5 e 10 mensagens
+            
+            function addLogMessage() {
+                if (i < maxMessages) {
+                    const message = fakeLogMessages[Math.floor(Math.random() * fakeLogMessages.length)];
+                    const logEntry = document.createElement('div');
+                    logEntry.innerHTML = `<span style="color:#0d6efd">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+                    logElement.appendChild(logEntry);
+                    logElement.scrollTop = logElement.scrollHeight;
+                    i++;
+                    setTimeout(addLogMessage, Math.random() * 1500 + 500); // Entre 0.5 e 2 segundos
+                }
+            }
+            
+            addLogMessage();
         }
         
         // Carregar status do usuário (downloads restantes)
@@ -125,8 +235,6 @@
                 .then(response => response.text())
                 .then(data => {
                     const userStatus = document.getElementById('userStatus');
-                    
-                    // Verificar se atingiu o limite e usar mensagem divertida
                     if (data.includes("Você atingiu o limite de downloads hoje")) {
                         const mensagemFun = getMensagemFun();
                         userStatus.innerHTML = `<div class="alert alert-warning">${mensagemFun}</div>`;
@@ -139,16 +247,114 @@
                 });
         });
 
+        async function downloadDesigni(e) {
+            e.preventDefault();
+            const form = document.getElementById('designiForm');
+            const link = document.getElementById('designi_link').value;
+            const historyDiv = document.getElementById('historyItems');
+            const submitBtn = document.getElementById('designiSubmitBtn'); // Botão do Designi
+            const normalState = form.querySelector('.normal-state');
+            const loadingState = form.querySelector('.loading');
+            const warningElement = document.getElementById('designiWarning');
+            const logElement = document.getElementById('designiLog');
+            
+            // Desabilitar o botão para evitar múltiplos cliques
+            submitBtn.disabled = true;
+            normalState.style.display = 'none';
+            loadingState.style.display = 'inline';
+            warningElement.style.display = 'block';
+            
+            // Simular log fake
+            simulateFakeLog(logElement);
+            
+            try {
+                const response = await fetch('/download-designi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: link })
+                });
+                
+                const data = await response.json();
+                
+                const newHistoryItem = document.createElement('div');
+                newHistoryItem.className = 'card mb-3';
+                
+                if (data.success) {
+                    newHistoryItem.innerHTML = `
+                        <div class="card-body">
+                            <div class="alert alert-success mb-3">
+                                ✅ Download concluído com sucesso!
+                            </div>
+                            <div class="mb-2">
+                                <strong>ID do arquivo:</strong> ${data.file_id}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Link para download:</strong><br>
+                                <a href="${data.download_link}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="bi bi-download"></i> Baixar do Google Drive
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    newHistoryItem.innerHTML = `
+                        <div class="card-body">
+                            <div class="alert alert-danger">
+                                ❌ Erro no download: ${data.error}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                historyDiv.insertBefore(newHistoryItem, historyDiv.firstChild);
+                
+                // Atualizar status do usuário
+                const statusResponse = await fetch('/status');
+                const statusData = await statusResponse.text();
+                const userStatus = document.getElementById('userStatus');
+                if (statusData.includes("Você atingiu o limite de downloads hoje")) {
+                    const mensagemFun = getMensagemFun();
+                    userStatus.innerHTML = `<div class="alert alert-warning">${mensagemFun}</div>`;
+                } else {
+                    userStatus.innerHTML = statusData;
+                }
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = `Erro: ${error}`;
+                historyDiv.insertBefore(errorDiv, historyDiv.firstChild);
+            } finally {
+                // Reabilitar o botão após o processamento
+                submitBtn.disabled = false;
+                normalState.style.display = 'inline';
+                loadingState.style.display = 'none';
+                warningElement.style.display = 'none';
+                logElement.style.display = 'none';
+                form.reset();
+            }
+        }
+
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const form = this;
             const historyDiv = document.getElementById('historyItems');
+            const submitBtn = document.getElementById('freepikSubmitBtn'); // Botão do Freepik
             const normalState = form.querySelector('.normal-state');
             const loadingState = form.querySelector('.loading');
+            const warningElement = document.getElementById('freepikWarning');
+            const logElement = document.getElementById('freepikLog');
             
+            // Desabilitar o botão para evitar múltiplos cliques
+            submitBtn.disabled = true;
             normalState.style.display = 'none';
             loadingState.style.display = 'inline';
+            warningElement.style.display = 'block';
+            
+            // Simular log fake
+            simulateFakeLog(logElement);
             
             fetch(form.action, {
                 method: 'POST',
@@ -156,21 +362,15 @@
             })
             .then(response => response.text())
             .then(data => {
-                // Create new history item
                 const newHistoryItem = document.createElement('div');
                 newHistoryItem.className = 'card mb-3';
                 newHistoryItem.innerHTML = data;
-                
-                // Add new item at the top of history
                 historyDiv.insertBefore(newHistoryItem, historyDiv.firstChild);
                 
-                // Atualizar status do usuário
                 fetch('/status')
                     .then(response => response.text())
                     .then(statusData => {
                         const userStatus = document.getElementById('userStatus');
-                        
-                        // Verificar se atingiu o limite e usar mensagem divertida
                         if (statusData.includes("Você atingiu o limite de downloads hoje")) {
                             const mensagemFun = getMensagemFun();
                             userStatus.innerHTML = `<div class="alert alert-warning">${mensagemFun}</div>`;
@@ -186,8 +386,12 @@
                 historyDiv.insertBefore(errorDiv, historyDiv.firstChild);
             })
             .finally(() => {
+                // Reabilitar o botão após o processamento
+                submitBtn.disabled = false;
                 normalState.style.display = 'inline';
                 loadingState.style.display = 'none';
+                warningElement.style.display = 'none';
+                logElement.style.display = 'none';
                 form.reset();
             });
         });
