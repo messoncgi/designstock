@@ -1,7 +1,6 @@
-# Usar uma imagem base com Python
 FROM python:3.11-slim
 
-# Instalar as dependências do sistema necessárias
+# Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     libsoup-3.0-0 \
     libgstreamer-gl1.0-0 \
@@ -12,15 +11,15 @@ RUN apt-get update && apt-get install -y \
     libgles2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar o arquivo requirements.txt e instalar as dependências Python
+# Instalar dependências Python
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Instalar o Playwright e seus binários
-RUN playwright install
+# Instalar Playwright e suas dependências
+RUN pip install playwright && playwright install --with-deps
 
-# Copiar o restante do código da aplicação
+# Copiar o código da aplicação
 COPY . .
 
-# Definir o comando de inicialização (ajuste conforme sua aplicação)
+# Definir o comando de inicialização
 CMD ["gunicorn", "app:app"]
