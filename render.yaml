@@ -3,3 +3,4 @@ services:
     name: designstock
     env: docker
     dockerfilePath: ./Dockerfile
+    startCommand: "gunicorn app:app"
