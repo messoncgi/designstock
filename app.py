@@ -12,6 +12,9 @@ import time
 from playwright.sync_api import sync_playwright
 from flask import Flask, render_template, request, jsonify
 
+# Definir o caminho dos binários do Playwright
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/app/playwright-browsers"
+
 # Configurações do Designi
 URL_LOGIN = os.getenv('DESIGNI_LOGIN_URL', 'https://designi.com.br/login')
 EMAIL = os.getenv('DESIGNI_EMAIL', '')
