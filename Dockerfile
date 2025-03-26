@@ -7,18 +7,18 @@ WORKDIR /app
 # Copiar o arquivo de requisitos primeiro para aproveitar o cache do Docker
 COPY requirements.txt .
 
-# Instalar as dependências Python (incluindo Playwright, para garantir a versão)
-# O --no-cache-dir ajuda a manter a imagem menor
+# Instalar as dependências Python (incluindo Playwright)
 RUN pip install --no-cache-dir -r requirements.txt
 
+# ----> ADICIONE ESTA LINHA DE VOLTA <----
+# Garante que o Chromium esteja instalado ou linkado onde a lib Python espera
+RUN playwright install chromium
+
 # Copiar o resto do código da sua aplicação
-# Faça isso DEPOIS de instalar dependências para melhor cache
 COPY . .
 
-# Expor a porta que o Gunicorn vai usar (opcional, mas boa prática)
+# Expor a porta que o Gunicorn vai usar
 EXPOSE 8000
 
 # Comando para iniciar a aplicação via Gunicorn
-# Certifique-se que 'app:app' está correto (arquivo app.py, variável app do Flask)
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
-# Adicionei --bind 0.0.0.0:8000 que é comum para containers e esperado pelo Render
