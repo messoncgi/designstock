@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expor a porta que o Gunicorn vai usar (opcional, mas boa prática)
-EXPOSE 8000 # Ou a porta que seu Gunicorn usa, se diferente
+EXPOSE 8000
 
 # Comando para iniciar a aplicação via Gunicorn
 # Certifique-se que 'app:app' está correto (arquivo app.py, variável app do Flask)
