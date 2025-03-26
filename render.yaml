@@ -1,6 +1,7 @@
+# render.yaml
 services:
   - type: web
     name: designstock
     env: docker
     dockerfilePath: ./Dockerfile
-    startCommand: "gunicorn app:app"
+    # startCommand: "gunicorn app:app" # <-- REMOVA OU COMENTE ESTA LINHA
