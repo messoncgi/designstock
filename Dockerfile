@@ -1,6 +1,10 @@
 # Usar a imagem oficial do Playwright que já inclui dependências e navegadores
 FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
+# ---> ADICIONE ESTA LINHA <---
+# Explicitamente dizer à biblioteca Python onde encontrar os navegadores pré-instalados
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
 # Definir diretório de trabalho
 WORKDIR /app
 
@@ -10,8 +14,9 @@ COPY requirements.txt .
 # Instalar as dependências Python (incluindo Playwright)
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ----> ADICIONE ESTA LINHA DE VOLTA <----
+# ---> MANTENHA ESTA LINHA POR SEGURANÇA <---
 # Garante que o Chromium esteja instalado ou linkado onde a lib Python espera
+# (Pode ser redundante com a ENV acima, mas não deve prejudicar)
 RUN playwright install chromium
 
 # Copiar o resto do código da sua aplicação
